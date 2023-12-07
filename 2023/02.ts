@@ -34,7 +34,7 @@ const games = getGames(input)
 const testGames = getGames(testInput)
 
 // INFO: Which games would be possible with 12 red cubes, 13 green cubes, 14 blue cubes
-const rubrik = {
+const rubric = {
   red: 12,
   green: 13,
   blue: 14,
@@ -44,7 +44,7 @@ const answer = _.sum(
     .filter((game) => {
       const colors = _.map(game.sets, (set) => {
         const possibleColors = _.mapValues(set, (value, key) => {
-          const diff = rubrik[key] - value
+          const diff = rubric[key] - value
           return Math.sign(diff)
         })
         return _.find(_.values(possibleColors), (value) => value === -1)
