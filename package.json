@@ -1,0 +1,33 @@
+{
+  "name": "advent-of-code",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stanosmith/advent-of-code.git"
+  },
+  "keywords": [
+    "aocd",
+    "advent",
+    "code"
+  ],
+  "author": "@stanosmith",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stanosmith/advent-of-code/issues"
+  },
+  "homepage": "https://github.com/stanosmith/advent-of-code#readme",
+  "dependencies": {
+    "@types/ramda": "^0.29.9",
+    "lodash": "^4.17.21",
+    "ramda": "^0.29.1"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.202",
+    "prettier": "3.1.0"
+  }
+}
