@@ -2,8 +2,85 @@ import _ from 'lodash'
 
 const parseInput = (input) => _.filter(input.split('\n'), (val) => val)
 
-const input =
-  parseInput(`Game 1: 9 red, 5 blue, 6 green; 6 red, 13 blue; 2 blue, 7 green, 5 red
+const input = parseInput(getInput())
+
+const testInput = parseInput(`
+Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
+Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
+Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
+Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
+Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
+`)
+
+const getGames = (gameData) => {
+  return _.map(gameData, (data) => data.replace('Game ', '').split(':')).map(
+    (data) => {
+      const trim = (bag) => bag.trim()
+      const splitSet = (set) => _.reverse(set.split(' '))
+      const mapInt = (val) => parseInt(val)
+      const makeSets = (str) =>
+        _.mapValues(_.fromPairs(str.split(',').map(trim).map(splitSet)), mapInt)
+      const id = parseInt(_.first(data))
+      const sets = _.last<string>(data).split(';').map(makeSets)
+      return {
+        id,
+        sets,
+      }
+    },
+  )
+}
+
+const games = getGames(input)
+const testGames = getGames(testInput)
+
+// INFO: Which games would be possible with 12 red cubes, 13 green cubes, 14 blue cubes
+const rubrik = {
+  red: 12,
+  green: 13,
+  blue: 14,
+}
+const answer = _.sum(
+  games
+    .filter((game) => {
+      const colors = _.map(game.sets, (set) => {
+        const possibleColors = _.mapValues(set, (value, key) => {
+          const diff = rubrik[key] - value
+          return Math.sign(diff)
+        })
+        return _.find(_.values(possibleColors), (value) => value === -1)
+      })
+      return colors.indexOf(-1) === -1
+    })
+    .map((game) => game.id),
+)
+
+console.log(answer)
+
+const getHighest = (sets, color) => {
+  // Sort from high to low and then take the first value
+  return _.first(_.reverse(_.sortBy(_.filter(_.map(sets, color)))))
+}
+const answerPartTwo = _.sum(
+  games
+    .map((game) => {
+      const { sets } = game
+      // Find the highest number for each color
+      return {
+        red: getHighest(sets, 'red'),
+        green: getHighest(sets, 'green'),
+        blue: getHighest(sets, 'blue'),
+      }
+    })
+    .map((colorsHighest) => {
+      const values = _.values(colorsHighest)
+      return _.reduce(colorsHighest, _.multiply, 1)
+    }),
+)
+
+console.log(answerPartTwo)
+
+function getInput() {
+  return `Game 1: 9 red, 5 blue, 6 green; 6 red, 13 blue; 2 blue, 7 green, 5 red
 Game 2: 6 red, 2 green, 2 blue; 12 green, 11 red, 17 blue; 2 blue, 10 red, 11 green; 13 green, 17 red; 15 blue, 20 red, 3 green; 3 blue, 11 red, 1 green
 Game 3: 20 green, 1 blue, 7 red; 20 green, 7 blue; 18 red, 8 green, 3 blue; 7 red, 6 blue, 11 green; 11 red, 6 blue, 16 green
 Game 4: 6 blue, 6 green; 2 blue, 5 green, 1 red; 9 blue, 1 red, 1 green; 1 red, 6 green, 8 blue; 4 green, 1 red, 1 blue
@@ -102,53 +179,5 @@ Game 96: 6 blue; 5 green, 2 blue, 2 red; 14 blue, 3 green
 Game 97: 1 blue, 2 green, 5 red; 2 green, 8 blue, 9 red; 1 green, 8 blue, 6 red; 1 blue, 17 red; 2 green, 10 blue, 11 red
 Game 98: 3 red, 12 blue, 2 green; 3 green, 4 blue, 4 red; 1 red, 11 blue, 2 green; 1 blue, 3 red
 Game 99: 2 green, 9 red; 8 red, 4 green, 9 blue; 8 blue, 13 red; 10 green, 8 blue, 6 red; 11 green, 2 red, 13 blue
-Game 100: 5 blue, 2 green, 7 red; 14 red, 15 green, 1 blue; 3 blue, 3 red; 8 green, 10 red, 6 blue; 6 blue, 4 red, 8 green`)
-
-const testInput = parseInput(`
-Game 1: 3 blue, 4 red; 1 red, 2 green, 6 blue; 2 green
-Game 2: 1 blue, 2 green; 3 green, 4 blue, 1 red; 1 green, 1 blue
-Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
-Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
-Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green
-`)
-
-const games = _.map(input, (data) => data.replace('Game ', '').split(':')).map(
-  (data) => {
-    const trim = (bag) => bag.trim()
-    const splitSet = (set) => _.reverse(set.split(' '))
-    const mapInt = (val) => parseInt(val)
-    const makeSets = (str) =>
-      _.mapValues(_.fromPairs(str.split(',').map(trim).map(splitSet)), mapInt)
-    const id = parseInt(_.first(data))
-    const sets = _.last<string>(data).split(';').map(makeSets)
-    return {
-      id,
-      sets,
-    }
-  },
-)
-
-console.log(games)
-
-// INFO: Which games would be possible with 12 red cubes, 13 green cubes, 14 blue cubes
-const rubric = {
-  red: 12,
-  green: 13,
-  blue: 14,
+Game 100: 5 blue, 2 green, 7 red; 14 red, 15 green, 1 blue; 3 blue, 3 red; 8 green, 10 red, 6 blue; 6 blue, 4 red, 8 green`
 }
-const answer = _.sum(
-  games
-    .filter((game) => {
-      const colors = _.map(game.sets, (set) => {
-        const possibleColors = _.mapValues(set, (value, key) => {
-          const diff = rubric[key] - value
-          return Math.sign(diff)
-        })
-        return _.find(_.values(possibleColors), (value) => value === -1)
-      })
-      return colors.indexOf(-1) === -1
-    })
-    .map((game) => game.id),
-)
-
-console.log(answer)
