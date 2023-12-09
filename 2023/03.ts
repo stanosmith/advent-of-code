@@ -11,8 +11,8 @@ class Day {
 
   solve(test?: boolean) {
     return {
-      partOne: partOne(this.input(test)),
-      // partTwo: partTwo(this.input(test)),
+      // partOne: partOne(this.input(test)),
+      partTwo: partTwo(this.input(test)),
     }
   }
 }
@@ -30,7 +30,7 @@ type Lines = {
 
 const regexSymbols = /[^\w\s.]/g
 const regexDigits = /\d+/g
-// const regexDigits = /[0-9]\d*(\d+)?/g
+
 const mapMatches = (regexMatch: RegExpMatchArray): Match => {
   const match = regexMatch[0]
   return {
@@ -41,99 +41,129 @@ const mapMatches = (regexMatch: RegExpMatchArray): Match => {
 }
 
 const day = new Day()
-// const daySolvedTest = day.solve(true)
-// console.log(daySolvedTest)
+const daySolvedTest = day.solve(true)
+console.log(daySolvedTest)
 
-const daySolved = day.solve() // 546877 is too high
-console.log(daySolved)
+// const daySolved = day.solve() // 546877 is too high
+// console.log(daySolved)
 
 function partOne(input: string[]) {
-  const partNumbers = input
-    .map((lineCurrent, index, allLines) => {
-      const lines = {
-        lineAbove: allLines[index - 1] || '',
-        lineCurrent,
-        lineBelow: allLines[index + 1] || '',
-      }
-      const digits: Match[] = _.flatMap(
-        [...lineCurrent.matchAll(regexDigits)],
-        mapMatches,
-      )
-      const symbols: Lines = _.mapValues(lines, (value: string) =>
-        _.flatMap([...value.matchAll(regexSymbols)], mapMatches),
-      )
-
-      return {
-        digits,
-        symbols,
-      }
-    })
-    .filter((data) => !_.isEmpty(data.digits))
-    .flatMap((data) => {
-      // Check if the digit has a symbol matches to see which ones are part numbers
-      const { digits, symbols } = data
-      const filterPartNumbers = (digitData: Match) => {
-        const { match, indexBegin, indexEnd } = digitData
-        const indexRangeBegin = indexBegin === 0 ? indexBegin : indexBegin - 1
-        const indexRangeEnd = indexEnd
-        const symbolIndexes = _.map(_.flatten(_.values(symbols)), 'indexBegin')
-
-        // console.log(symbolIndexes.length)
-
-        const adjacentSymbols = _.filter(
-          symbolIndexes,
-          (symbolIndex: number) => {
-            const withinRange =
-              symbolIndex >= indexRangeBegin && symbolIndex <= indexRangeEnd
-            // console.log({
-            //   symbolIndex,
-            //   indexRangeBegin,
-            //   indexRangeEnd,
-            //   match,
-            //   withinRange,
-            // })
-            return withinRange
-          },
-        )
-        return !!adjacentSymbols.length
-      }
-
-      return _.map(digits.filter(filterPartNumbers), 'match').map(
-        (match: string) => parseInt(match),
-      )
-    })
-
+  const partNumbers = getPartNumbers()
   // console.log(partNumbers.slice(partNumbers.length-10))
   console.log(partNumbers)
 
   return _.sum(partNumbers)
+
+  function getPartNumbers() {
+    return input
+      .map(getDigitsAndSymbols)
+      .filter((data) => !_.isEmpty(data.digits))
+      .flatMap((data) => {
+        // Check if the digit has a symbol matches to see which ones are part numbers
+        const { digits, symbols } = data
+        const filterPartNumbers = (digitData: Match) => {
+          const { match, indexBegin, indexEnd } = digitData
+          const indexRangeBegin = indexBegin === 0 ? indexBegin : indexBegin - 1
+          const indexRangeEnd = indexEnd
+          const symbolIndexes = _.map(
+            _.flatten(_.values(symbols)),
+            'indexBegin',
+          )
+
+          // console.log(symbolIndexes.length)
+
+          const adjacentSymbols = _.filter(
+            symbolIndexes,
+            (symbolIndex: number) => {
+              const withinRange =
+                symbolIndex >= indexRangeBegin && symbolIndex <= indexRangeEnd
+              // console.log({
+              //   symbolIndex,
+              //   indexRangeBegin,
+              //   indexRangeEnd,
+              //   match,
+              //   withinRange,
+              // })
+              return withinRange
+            },
+          )
+          return !!adjacentSymbols.length
+        }
+
+        return _.map(digits.filter(filterPartNumbers), 'match').map(
+          (match: string) => parseInt(match),
+        )
+      })
+  }
 }
 
 function partTwo(input: string[]) {
-  return input
+  const gear = '*'
+  const gearRatio = (a: number, b: number) => _.multiply(a, b)
+
+  return input.map(getDigitsAndSymbols)
+}
+
+console.log(daySolvedTest)
+
+function getDigitsAndSymbols(
+  lineCurrent: string,
+  index: number,
+  allLines: string[],
+) {
+  const lines = {
+    lineAbove: allLines[index - 1] || '',
+    lineCurrent,
+    lineBelow: allLines[index + 1] || '',
+  }
+  const digits: Match[] = _.flatMap(
+    [...lineCurrent.matchAll(regexDigits)],
+    mapMatches,
+  )
+  const symbols: Lines = _.mapValues(lines, (value: string) =>
+    _.flatMap([...value.matchAll(regexSymbols)], mapMatches),
+  )
+
+  return {
+    digits,
+    symbols,
+  }
 }
 
 function getTestInput() {
   // INFO: User provided test data
   //  @via: https://www.reddit.com/r/adventofcode/comments/189q9wv/2023_day_3_another_sample_grid_to_use/
 
+  // OG test from the instructions
+  return `
+  467..114..
+  ...*......
+  ..35..633.
+  ......#...
+  617*......
+  .....+.58.
+  ..592.....
+  ......755.
+  ...$.*....
+  .664.598..`
+
   //     return `....................
   // ..-52..52-..52..52..
   // ..................-.`
 
-  return `
-.......5......
-..7*..*.....4*
-...*13*......9
-.......15.....
-..............
-..............
-..............
-..............
-..............
-..............
-21............
-...*9.........`
+  //   return `
+  // .......5......
+  // ..7*..*.....4*
+  // ...*13*......9
+  // .......15.....
+  // ..............
+  // ..............
+  // ..............
+  // ..............
+  // ..............
+  // ..............
+  // 21............
+  // ...*9.........`
 
   //   return `12.......*..
   // +.........34
@@ -160,19 +190,6 @@ function getTestInput() {
   // 2.2......12.
   // .*.........*
   // 1.1..503+.56`
-
-  // OG test from the instructions
-  // return `
-  // 467..114..
-  // ...*......
-  // ..35..633.
-  // ......#...
-  // 617*......
-  // .....+.58.
-  // ..592.....
-  // ......755.
-  // ...$.*....
-  // .664.598..`
 }
 function getInput() {
   return `.......358..........31.....339.....669.............598......328.....575......................447..650..............964...........692........
