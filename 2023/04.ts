@@ -11,20 +11,21 @@ class Day {
 
   solve(test?: boolean) {
     return {
-      partOne: partOne(this.input(test)),
-      // partTwo: partTwo(this.input(test)),
+      // partOne: partOne(this.input(test)),
+      partTwo: partTwo(this.input(test)),
     }
   }
 }
 
 const day = new Day()
-// const daySolvedTest = day.solve(true)
-// console.log(daySolvedTest)
+const daySolvedTest = day.solve(true)
+console.log(daySolvedTest)
 
-const daySolved = day.solve() // 546877 is too high
-console.log(daySolved)
+// const daySolved = day.solve() // 546877 is too high
+// console.log(daySolved)
 
 function partOne(input: string[]) {
+  // How many points are they worth in total?
   return _.sum(getWinnings())
 
   function getWinnings() {
@@ -50,7 +51,62 @@ function partOne(input: string[]) {
 }
 
 function partTwo(input: string[]) {
-  return input
+  // How many total scratchcards do you end up with?
+  // return _.sum(getWinnings())
+  return _.sortBy(_.flatten(totalScratchcards()), 'number')
+
+  function totalScratchcards() {
+    return _.map(input, (card: string) => {
+      const numberSets = _.map(
+        _.last(card.split(':')).split('|'),
+        (list: string) =>
+          _.map(_.filter(list.split(' ')), (num: string) => parseInt(num)),
+      )
+      return _.intersection(...numberSets)
+    })
+      .map((winningNumbers: number[], index: number) => ({
+        number: index + 1,
+        matches: _.size(winningNumbers),
+      }))
+      .map(
+        (
+          card: { number: number; matches: number },
+          index: number,
+          allCards: { number: number; matches: number }[],
+        ) => {
+          const plusOne = index + 1
+          const sliceEnd = plusOne + card.matches
+          const copies = _.slice(allCards, plusOne, sliceEnd)
+          const copiesR = getCopiesRecursive(copies, plusOne)
+
+          return [card, ...copiesR]
+          // return {
+          //   // [`Card ${plusOne}`]: copies,
+          //   [`Card ${plusOne}`]: [card, ...copiesR],
+          // }
+
+          function getCopiesRecursive(
+            subCopies: { number: number; matches: number }[],
+            copyIndex: number,
+          ) {
+            if (copyIndex < allCards.length) {
+              return getCopiesRecursive(
+                [
+                  ...subCopies,
+                  ..._.slice(
+                    allCards,
+                    ++copyIndex,
+                    copyIndex + (allCards[copyIndex]?.matches || 0),
+                  ),
+                ],
+                copyIndex,
+              )
+            }
+            return subCopies
+          }
+        },
+      )
+  }
 }
 
 function getTestInput() {
